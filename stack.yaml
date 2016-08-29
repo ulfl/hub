@@ -1,0 +1,13 @@
+resolver: lts-6.16
+
+packages:
+ - '.'
+
+extra-deps:
+ - brick-0.8
+ 
+flags: {}
+
+extra-package-dbs: []
+
+system-ghc: false
