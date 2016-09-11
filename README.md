@@ -12,7 +12,7 @@ filtered set of commands displayed to your terminal.
 Commands are defined using standard markdown syntax. Markdown files
 can recursively include other markdown files. You could for example
 define your own personal commands and then include shared markdown
-files for the development team using github repositories. Hub expects
+files for the development team using git repositories. Hub expects
 the root markdown file to reside in ```~/.hub.md```.
 
 Nested config files are included as follows:
