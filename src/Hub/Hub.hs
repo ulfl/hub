@@ -19,6 +19,7 @@ import Brick.Widgets.Core
 import Brick.Util (fg, on)
 import Data.Monoid
 import qualified Data.Text.Zipper as Z
+import qualified Text.Printf
 
 import System.Process
 import qualified Hub.Config as Hc
@@ -29,10 +30,10 @@ data FieldName
      deriving (Ord, Show, Eq)
 
 data State =
-    State (L.List FieldName ListRow)
-          (E.Editor FieldName)
-          [Hc.Command]
-          (Maybe String)
+    State (L.List FieldName ListRow) -- The list widget.
+          (E.Editor FieldName)       -- The editor widget.
+          [Hc.Command]               -- List of available 'Commands'.
+          (Maybe String)             -- Command to execute.
 
 data ListRow = ListRow String String deriving (Ord, Show, Eq)
 
@@ -68,10 +69,21 @@ theApp =
 drawUI :: State -> [Widget FieldName]
 drawUI state = [ui]
   where
-    State l e _ _ = state
+    State l e cmds _ = state
     box = L.renderList (listDrawElement) False l
     prompt = E.renderEditor True e
-    ui = vBox [box, hBox [(str "hub> "), prompt]]
+    ui =
+        vBox
+            [ box
+            , hBox
+                  [ withAttr
+                        L.listSelectedAttr
+                        (str
+                             (Text.Printf.printf
+                                  "Showing XX of %d items."
+                                  (length cmds)))
+                  , withAttr L.listSelectedAttr (vLimit 1 (fill ' '))]
+            , hBox [(str "hub> "), prompt]]
 
 listDrawElement :: Bool -> ListRow -> Widget FieldName
 listDrawElement sel (ListRow tags description) =
