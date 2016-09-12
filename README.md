@@ -23,9 +23,9 @@ Nested config files are included as follows:
 
 # TODO
 
-* Allow search based on partially entered keywords.
+* Allow saving command (to bash history) without executing it in order
+  to allow for editing.
 
-* Improve presentation. Add status bar that lists current number of
-  commands.
+* Allow search based on partially entered keywords.
 
 * Multiline commands (scripts).
