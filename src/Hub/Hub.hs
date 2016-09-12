@@ -150,8 +150,8 @@ theAttrMap :: A.AttrMap
 theAttrMap =
     A.attrMap
         V.defAttr
-        [ (L.listAttr, V.black `on` V.white)
-        , (L.listSelectedAttr, V.black `on` V.white)
+        [ (L.listAttr, V.defAttr)
+        , (L.listSelectedAttr, V.defAttr `V.withStyle` V.reverseVideo)
         , (customAttr, V.white `on` V.red `V.withStyle` V.defaultStyleMask)]
 
 customAttr :: A.AttrName
