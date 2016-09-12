@@ -5,6 +5,8 @@ packages:
 
 extra-deps:
  - brick-0.8
+ - lens-4.14
+ - kan-extensions-5.0.1
  
 flags: {}
 

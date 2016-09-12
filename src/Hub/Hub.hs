@@ -24,6 +24,8 @@ import qualified Text.Printf
 import System.Process
 import qualified Hub.Config as Hc
 
+import Control.Lens ((^.))
+
 data FieldName
     = ListField
     | EditField
@@ -80,7 +82,8 @@ drawUI state = [ui]
                         L.listSelectedAttr
                         (str
                              (Text.Printf.printf
-                                  "Showing XX of %d items."
+                                  "Showing %d of %d items."
+                                  (Vec.length (l^.(L.listElementsL)))
                                   (length cmds)))
                   , withAttr L.listSelectedAttr (vLimit 1 (fill ' '))]
             , hBox [(str "hub> "), prompt]]
