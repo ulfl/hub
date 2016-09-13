@@ -22,6 +22,7 @@ import qualified Data.Text.Zipper as Z
 import qualified Text.Printf
 
 import System.Process
+import qualified System.Environment
 import qualified Hub.Config as Hc
 
 import Control.Lens ((^.))
@@ -41,11 +42,21 @@ data ListRow = ListRow String String deriving (Ord, Show, Eq)
 
 hub :: IO ()
 hub = do
+    args <- System.Environment.getArgs
     cmds <- Hc.readConfig
-    State _ _ _ cmd <- M.defaultMain theApp (initialState cmds)
-    case cmd of
-        Just cmdStr -> callCommand cmdStr
-        Nothing -> return ()
+    let filteredCmds = Hc.filterCmds args cmds
+    cmd <-
+        case filteredCmds of
+            [cmd] -> return (Just (Hc.getShellCmd cmd))
+            _ -> do
+                State _ _ _ cmd <-
+                    M.defaultMain theApp (initialState filteredCmds)
+                return cmd
+    runCmd cmd
+
+runCmd :: (Maybe String) -> IO ()
+runCmd (Just cmd) = callCommand cmd
+runCmd Nothing = do
     return ()
 
 -- Internal ============================================================

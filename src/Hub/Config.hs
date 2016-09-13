@@ -1,6 +1,6 @@
 -- Copyright (C) 2016 Ulf Leopold
 --
-module Hub.Config (Command, readConfig, filterCmds, mapCmds) where
+module Hub.Config (Command, readConfig, filterCmds, mapCmds, getShellCmd) where
 
 import System.Directory
 import System.FilePath
@@ -29,6 +29,9 @@ filterCmds (k:keywords) cmds =
 mapCmds :: [Command] -> [String] -> (String -> String -> b) -> [b]
 mapCmds commands words fun =
     map (\(Command tags cmd) -> fun (unwords (tags \\ words)) cmd) commands
+
+getShellCmd :: Command -> String
+getShellCmd (Command tags shellCmd) = shellCmd
 
 -- Internal ============================================================
 fileToCmds :: String -> IO [Command]
