@@ -23,9 +23,17 @@ Nested config files are included as follows:
 
 # TODO
 
-* Allow saving command (to bash history) without executing it in order
-  to allow for editing.
+* Allow saving a command to the clipboard without executing it in
+  order to allow for editing.
+
+* As an alternative to markup files, support a programmable format
+  (i.e. Haskell).
 
 * Allow search based on partially entered keywords.
+
+* Remember popular commands and sort accordingly. Should be easy to
+  rerun a command that was just executed.
+
+* Allow specifying tags you don't want to see.
 
 * Multiline commands (scripts).
