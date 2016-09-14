@@ -9,13 +9,21 @@ import qualified Data.Text as DT
 import qualified Data.Text.Lazy as TL
 import qualified Data.Sequence as SEQ
 import Data.List
+import qualified Language.Haskell.Interpreter as I
+import Text.Printf (printf)
 
 type Tags = [String]
 data Command = Command Tags String deriving (Ord, Show, Eq)
 
 readConfig = do
     home <- getHomeDirectory
-    let configFile = joinPath [home, ".hub.md"]
+    let haskellConfigFile = joinPath [home, ".hub.hs"]
+    let markdownConfigFile = joinPath [home, ".hub.md"]
+    exists <- doesFileExist haskellConfigFile
+    let configFile =
+            if exists
+                then haskellConfigFile
+                else markdownConfigFile
     cmds <- (fileToCmds configFile)
     return cmds
 
@@ -34,8 +42,30 @@ getShellCmd :: Command -> String
 getShellCmd (Command tags shellCmd) = shellCmd
 
 -- Internal ============================================================
-fileToCmds :: String -> IO [Command]
-fileToCmds fileName = do
+fileToCmds :: FilePath -> IO [Command]
+fileToCmds filepath = do
+    case takeExtension filepath of
+        ".hs" -> haskellFileToCmds filepath
+        ".md" -> markdownFileToCmds filepath
+        _ -> error "Not supported config file extension."
+
+haskellFileToCmds :: FilePath -> IO [Command]
+haskellFileToCmds filePath = do
+    result <-
+        I.runInterpreter $
+        do I.loadModules [filePath]
+           I.setImports ["Prelude", "HubConfig"]
+           I.interpret "HubConfig.main" (I.as :: [([String], String)])
+    let [config] =
+            case result of
+                Left err ->
+                    error
+                        (printf "Couldn't evaluate Hub config (%s)." (show err))
+                Right config -> return config
+    return (fmap (\(tags, cmd) -> Command tags cmd) config)
+
+markdownFileToCmds :: String -> IO [Command]
+markdownFileToCmds fileName = do
     blocks <- fileToBlocks fileName
     cmds <- parseBlocks blocks [(0, [])] []
     return (reverse cmds)

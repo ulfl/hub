@@ -29,6 +29,7 @@ library
                      , pretty-show
                      , text-zipper
                      , lens
+                     , hint
   default-language:    Haskell2010
 
 executable hub

@@ -36,7 +36,7 @@ data State =
     State (L.List FieldName ListRow) -- The list widget.
           (E.Editor FieldName)       -- The editor widget.
           [Hc.Command]               -- List of available 'Commands'.
-          (Maybe String)             -- Command to execute.
+          (Maybe String)             -- Final command to execute.
 
 data ListRow = ListRow String String deriving (Ord, Show, Eq)
 

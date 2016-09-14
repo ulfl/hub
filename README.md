@@ -23,11 +23,11 @@ Nested config files are included as follows:
 
 # TODO
 
-* Allow saving a command to the clipboard without executing it in
-  order to allow for editing.
-
 * As an alternative to markup files, support a programmable format
   (i.e. Haskell).
+
+* Allow saving a command to the clipboard without executing it in
+  order to allow for editing.
 
 * Allow search based on partially entered keywords.
 
@@ -37,3 +37,5 @@ Nested config files are included as follows:
 * Allow specifying tags you don't want to see.
 
 * Multiline commands (scripts).
+
+* Dockerize.
