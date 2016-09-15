@@ -60,12 +60,12 @@ interpret filePath = do
         I.runInterpreter $
         do I.loadModules [filePath]
            I.setImports ["Prelude", "HubConfig"]
-           r <- I.interpret "HubConfig.main" (I.as :: IO [([String], String)])
+           r <- I.interpret "HubConfig.main" (I.as :: [([String], String)])
            return r
     case res of
         Left err ->
             error (printf "Couldn't evaluate Hub config (%s)." (show err))
-        Right x -> x
+        Right x -> return x
 
 markdownFileToCmds :: String -> IO [Command]
 markdownFileToCmds fileName = do
