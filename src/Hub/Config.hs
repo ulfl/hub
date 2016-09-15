@@ -51,18 +51,21 @@ fileToCmds filepath = do
 
 haskellFileToCmds :: FilePath -> IO [Command]
 haskellFileToCmds filePath = do
-    result <-
+    config <- interpret filePath
+    return (fmap (\(tags, cmd) -> Command tags cmd) config)
+
+interpret :: FilePath -> IO [([String], String)]
+interpret filePath = do
+    res <-
         I.runInterpreter $
         do I.loadModules [filePath]
            I.setImports ["Prelude", "HubConfig"]
-           I.interpret "HubConfig.main" (I.as :: [([String], String)])
-    let [config] =
-            case result of
-                Left err ->
-                    error
-                        (printf "Couldn't evaluate Hub config (%s)." (show err))
-                Right config -> return config
-    return (fmap (\(tags, cmd) -> Command tags cmd) config)
+           r <- I.interpret "HubConfig.main" (I.as :: IO [([String], String)])
+           return r
+    case res of
+        Left err ->
+            error (printf "Couldn't evaluate Hub config (%s)." (show err))
+        Right x -> x
 
 markdownFileToCmds :: String -> IO [Command]
 markdownFileToCmds fileName = do
