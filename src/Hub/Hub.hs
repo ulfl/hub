@@ -54,10 +54,9 @@ hub = do
                 return cmd
     runCmd cmd
 
-runCmd :: (Maybe String) -> IO ()
+runCmd :: Maybe String -> IO ()
 runCmd (Just cmd) = callCommand cmd
-runCmd Nothing = do
-    return ()
+runCmd Nothing = return ()
 
 -- Internal ============================================================
 initialState :: [Hc.Command] -> State
@@ -83,7 +82,7 @@ drawUI :: State -> [Widget FieldName]
 drawUI state = [ui]
   where
     State l e cmds _ = state
-    box = L.renderList (listDrawElement) False l
+    box = L.renderList listDrawElement False l
     prompt = E.renderEditor True e
     ui =
         vBox
@@ -94,10 +93,10 @@ drawUI state = [ui]
                         (str
                              (Text.Printf.printf
                                   "Showing %d of %d items."
-                                  (Vec.length (l^.(L.listElementsL)))
+                                  (Vec.length (l^.L.listElementsL))
                                   (length cmds)))
                   , withAttr L.listSelectedAttr (vLimit 1 (fill ' '))]
-            , hBox [(str "hub> "), prompt]]
+            , hBox [str "hub> ", prompt]]
 
 listDrawElement :: Bool -> ListRow -> Widget FieldName
 listDrawElement sel (ListRow tags description) =
@@ -110,7 +109,7 @@ listDrawElement sel (ListRow tags description) =
            , vLimit 2 (hLimit 1 (fill ' '))
            , padRight
                  T.Max
-                 (vBox [str tags, (padLeft (T.Pad 8) (str (description)))])]
+                 (vBox [str tags, padLeft (T.Pad 8) (str description)])]
 
 appEvent :: State -> V.Event -> T.EventM FieldName (T.Next State)
 appEvent (State l ed commands cmd) e =
@@ -142,7 +141,7 @@ lengthOfPrevWord str =
     let str1 =
             (dropWhile
                  (not . Data.Char.isSpace)
-                 ((dropWhile Data.Char.isSpace) (reverse str)))
+                 (dropWhile Data.Char.isSpace (reverse str)))
     in (length str) - (length str1)
 
 updateDisplayList
@@ -153,14 +152,14 @@ updateDisplayList
 updateDisplayList l ed commands =
     L.listReplace
         (Vec.fromList
-             (let words = (getUserInputWords (head (E.getEditContents ed)))
+             (let words = getUserInputWords (head (E.getEditContents ed))
               in (commandsToRows (Hc.filterCmds words commands) words)))
         (Just 0)
         l
 
 getUserInputWords :: String -> [String]
 getUserInputWords s =
-    let completed = not (null s) && (last s) == ' '
+    let completed = not (null s) && last s == ' '
         wordList = words s
     in if completed
            then wordList

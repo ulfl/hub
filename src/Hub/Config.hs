@@ -24,8 +24,7 @@ readConfig = do
             if exists
                 then haskellConfigFile
                 else markdownConfigFile
-    cmds <- (fileToCmds configFile)
-    return cmds
+    fileToCmds configFile
 
 filterCmds :: [String] -> [Command] -> [Command]
 filterCmds [] cmds = cmds
@@ -43,7 +42,7 @@ getShellCmd (Command tags shellCmd) = shellCmd
 
 -- Internal ============================================================
 fileToCmds :: FilePath -> IO [Command]
-fileToCmds filepath = do
+fileToCmds filepath =
     case takeExtension filepath of
         ".hs" -> haskellFileToCmds filepath
         ".md" -> markdownFileToCmds filepath
@@ -60,11 +59,9 @@ interpret filePath = do
         I.runInterpreter $
         do I.loadModules [filePath]
            I.setImports ["Prelude", "HubConfig"]
-           r <-
-               I.interpret
-                   "HubConfig.main"
-                   (I.as :: [(String, [String], String)])
-           return r
+           I.interpret
+                "HubConfig.main"
+                (I.as :: [(String, [String], String)])
     case res of
         Left err ->
             error (printf "Couldn't evaluate Hub config (%s)." (show err))
@@ -93,7 +90,7 @@ markdownFileToCmds fileName = do
 fileToBlocks :: FilePath -> IO Blocks
 fileToBlocks fileName = do
     contents <- readFile fileName
-    let Doc options blocks = (toMarkdown (DT.pack contents))
+    let Doc options blocks = toMarkdown (DT.pack contents)
     return blocks
 
 toMarkdown :: DT.Text -> Doc
