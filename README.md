@@ -24,7 +24,7 @@ Nested config files are included as follows:
 # TODO
 
 * As an alternative to markup files, support a programmable format
-  (i.e. Haskell).
+  (i.e. Haskell). Handle includes.
 
 * Allow saving a command to the clipboard without executing it in
   order to allow for editing.
