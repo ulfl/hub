@@ -9,22 +9,32 @@ import qualified Data.Text as DT
 import qualified Data.Text.Lazy as TL
 import qualified Data.Sequence as SEQ
 import Data.List
-import qualified Language.Haskell.Interpreter as I
 import Text.Printf (printf)
+import qualified Language.Haskell.Interpreter as I
+import System.CPUTime
+import Data.Either
+import qualified Language.Scheme.Core as S
 
 type Tags = [String]
 data Command = Command Tags String deriving (Ord, Show, Eq)
 
 readConfig = do
     home <- getHomeDirectory
-    let haskellConfigFile = joinPath [home, ".hub.hs"]
-    let markdownConfigFile = joinPath [home, ".hub.md"]
-    exists <- doesFileExist haskellConfigFile
-    let configFile =
-            if exists
-                then haskellConfigFile
-                else markdownConfigFile
-    fileToCmds configFile
+    let configFiles =
+            map (\x -> joinPath [home, x]) [".hub.scm", ".hub.hs", ".hub.md"]
+    cfg <- firstExisting configFiles
+    case cfg of
+        Just file -> fileToCmds file
+        Nothing -> return []
+
+firstExisting :: [FilePath] -> IO (Maybe FilePath)
+firstExisting [] = return Nothing
+firstExisting (filePath : filePaths) = do
+  res <- doesFileExist filePath
+  if res then
+      return (Just filePath)
+  else
+      firstExisting filePaths
 
 filterCmds :: [String] -> [Command] -> [Command]
 filterCmds [] cmds = cmds
@@ -42,19 +52,27 @@ getShellCmd (Command tags shellCmd) = shellCmd
 
 -- Internal ============================================================
 fileToCmds :: FilePath -> IO [Command]
-fileToCmds filepath =
-    case takeExtension filepath of
-        ".hs" -> haskellFileToCmds filepath
-        ".md" -> markdownFileToCmds filepath
-        _ -> error "Not supported config file extension."
+fileToCmds filepath = do
+    t1 <- getCPUTime
+    r <-
+        case takeExtension filepath of
+            ".scm" -> schemeFileToCmds filepath
+            ".hs" -> haskellFileToCmds filepath
+            ".md" -> markdownFileToCmds filepath
+            _ -> error "Not supported config file extension."
+    t2 <- getCPUTime
+    printf "Time spent loading configs: %0.3f sec\n" (toSec (t2 - t1) :: Double)
+    return r
+
+toSec t = (fromIntegral t) / (10^12)
 
 haskellFileToCmds :: FilePath -> IO [Command]
 haskellFileToCmds filePath = do
-    config <- interpret filePath
+    config <- interpretHaskell filePath
     toCommandList config
 
-interpret :: FilePath -> IO [(String, [String], String)]
-interpret filePath = do
+interpretHaskell :: FilePath -> IO [(String, [String], String)]
+interpretHaskell filePath = do
     res <-
         I.runInterpreter $
         do I.loadModules [filePath]
@@ -67,23 +85,39 @@ interpret filePath = do
             error (printf "Couldn't evaluate Hub config (%s)." (show err))
         Right x -> return x
 
+schemeFileToCmds :: FilePath -> IO [Command]
+schemeFileToCmds filePath = do
+    start <- getCPUTime
+    config <- interpretScheme filePath
+    end <- getCPUTime
+    let diff = (fromIntegral (end - start)) / (10^12)
+    printf "Computation time: %0.3f sec\n" (diff :: Double)
+    toCommandList config
+
+interpretScheme :: FilePath -> IO [(String, [String], String)]
+interpretScheme filePath = do
+  contents <- readFile filePath
+  env <- S.r5rsEnv
+  res <- S.evalString env contents
+  return [("Command", [], "ssh")]
+
 toCommandList :: [(String, [String], String)] -> IO [Command]
 toCommandList [] = return []
 toCommandList (("Command", tags, cmd) : rest)  = do
   res <- toCommandList rest
   return ((Command tags cmd) : res)
 toCommandList (("Include", tags, includePath) : rest) = do
-  res <- interpret includePath
+  res <- fileToCmds includePath
   let resWithTags = addTags tags res
-  cmds1 <- toCommandList resWithTags
   cmds2 <- toCommandList rest
-  return (cmds1 ++ cmds2)
+  return (resWithTags ++ cmds2)
 
-addTags tags cmds = map (\(typeStr, t, cmd) -> (typeStr, tags ++ t, cmd)) cmds
+addTags tags cmds =
+    map (\(Command t cmd) -> (Command (tags ++ t) cmd)) cmds
 
-markdownFileToCmds :: String -> IO [Command]
-markdownFileToCmds fileName = do
-    blocks <- fileToBlocks fileName
+markdownFileToCmds :: FilePath -> IO [Command]
+markdownFileToCmds filePath = do
+    blocks <- fileToBlocks filePath
     cmds <- parseBlocks blocks [(0, [])] []
     return (reverse cmds)
 

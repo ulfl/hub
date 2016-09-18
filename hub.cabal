@@ -30,6 +30,7 @@ library
                      , text-zipper
                      , lens
                      , hint
+                     , husk-scheme
   default-language:    Haskell2010
 
 executable hub

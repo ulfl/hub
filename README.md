@@ -26,6 +26,8 @@ Nested config files are included as follows:
 * As an alternative to markup files, support a programmable format
   (i.e. Haskell). Handle includes.
 
+* Specify config file using a command line flag.
+
 * Allow saving a command to the clipboard without executing it in
   order to allow for editing.
 
