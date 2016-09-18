@@ -1,7 +1,10 @@
 -- Copyright (C) 2016 Ulf Leopold
 --
 {-# LANGUAGE OverloadedStrings #-}
+
 module Hub.Hub (hub) where
+
+import Hub.CmdLine
 
 import qualified Graphics.Vty as V
 import qualified Brick.Main as M
@@ -42,9 +45,9 @@ data ListRow = ListRow String String deriving (Ord, Show, Eq)
 
 hub :: IO ()
 hub = do
-    args <- System.Environment.getArgs
-    cmds <- Hc.readConfig
-    let filteredCmds = Hc.filterCmds args cmds
+    appCfg <- getAppConfig
+    cmds <- Hc.readConfig appCfg
+    let filteredCmds = Hc.filterCmds (tags appCfg) cmds
     cmd <-
         case filteredCmds of
             [cmd] -> return (Just (Hc.getShellCmd cmd))
@@ -62,7 +65,7 @@ runCmd Nothing = return ()
 initialState :: [Hc.Command] -> State
 initialState cmds =
     State
-        (L.list ListField (Vec.fromList (commandsToRows cmds [])) 2)
+        (L.list ListField (Vec.fromList (commandsToRows cmds)) 2)
         (E.editor EditField (str . unlines) (Just 1) "")
         cmds
         Nothing
@@ -153,7 +156,7 @@ updateDisplayList l ed commands =
     L.listReplace
         (Vec.fromList
              (let words = getUserInputWords (head (E.getEditContents ed))
-              in (commandsToRows (Hc.filterCmds words commands) words)))
+              in (commandsToRows (Hc.filterCmds words commands))))
         (Just 0)
         l
 
@@ -167,9 +170,9 @@ getUserInputWords s =
                     then []
                     else tail (reverse (words s))
 
-commandsToRows :: [Hc.Command] -> [String] -> [ListRow]
-commandsToRows commands words =
-    Hc.mapCmds commands words (\tags cmd -> ListRow tags cmd)
+commandsToRows :: [Hc.Command] -> [ListRow]
+commandsToRows commands =
+    Hc.mapCmds commands (\tags cmd -> ListRow tags cmd)
 
 theAttrMap :: A.AttrMap
 theAttrMap =

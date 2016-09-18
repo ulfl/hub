@@ -2,6 +2,7 @@
 --
 module Hub.Config (Command, readConfig, filterCmds, mapCmds, getShellCmd) where
 
+import Hub.CmdLine
 import System.Directory
 import System.FilePath
 import Cheapskate
@@ -18,13 +19,18 @@ import qualified Language.Scheme.Core as S
 type Tags = [String]
 data Command = Command Tags String deriving (Ord, Show, Eq)
 
-readConfig = do
+readConfig :: AppConfig -> IO [Command]
+readConfig appCfg = do
     home <- getHomeDirectory
     let configFiles =
             map (\x -> joinPath [home, x]) [".hub.scm", ".hub.hs", ".hub.md"]
-    cfg <- firstExisting configFiles
-    case cfg of
-        Just file -> fileToCmds file
+    cfgFiles <- firstExisting configFiles
+    case cfgFiles of
+        Just file ->
+            dt
+                appCfg
+                "Time spent loading configs: %0.3f sec\n"
+                (\_ -> fileToCmds file)
         Nothing -> return []
 
 firstExisting :: [FilePath] -> IO (Maybe FilePath)
@@ -37,15 +43,18 @@ firstExisting (filePath : filePaths) = do
       firstExisting filePaths
 
 filterCmds :: [String] -> [Command] -> [Command]
-filterCmds [] cmds = cmds
-filterCmds (k:keywords) cmds =
-    filter
-        (\(Command keywords _) -> k `elem` keywords)
-        (filterCmds keywords cmds)
+filterCmds keywords cmds =
+    let filtered =
+            foldl
+                (\acc keyword ->
+                      filter (\(Command kws _) -> keyword `elem` kws) acc)
+                cmds
+                keywords
+    in map (\(Command kws cmd) -> Command (kws \\ keywords) cmd) filtered
 
-mapCmds :: [Command] -> [String] -> (String -> String -> b) -> [b]
-mapCmds commands words fun =
-    map (\(Command tags cmd) -> fun (unwords (tags \\ words)) cmd) commands
+mapCmds :: [Command] -> (String -> String -> b) -> [b]
+mapCmds commands fun =
+    map (\(Command tags cmd) -> fun (unwords tags) cmd) commands
 
 getShellCmd :: Command -> String
 getShellCmd (Command tags shellCmd) = shellCmd
@@ -53,18 +62,21 @@ getShellCmd (Command tags shellCmd) = shellCmd
 -- Internal ============================================================
 fileToCmds :: FilePath -> IO [Command]
 fileToCmds filepath = do
-    t1 <- getCPUTime
-    r <-
-        case takeExtension filepath of
-            ".scm" -> schemeFileToCmds filepath
-            ".hs" -> haskellFileToCmds filepath
-            ".md" -> markdownFileToCmds filepath
-            _ -> error "Not supported config file extension."
-    t2 <- getCPUTime
-    printf "Time spent loading configs: %0.3f sec\n" (toSec (t2 - t1) :: Double)
-    return r
+  case takeExtension filepath of
+    ".scm" -> schemeFileToCmds filepath
+    ".hs" -> haskellFileToCmds filepath
+    ".md" -> markdownFileToCmds filepath
+    _ -> error "Not supported config file extension."
 
-toSec t = (fromIntegral t) / (10^12)
+dt (AppConfig {profile = True}) msg fun = do
+    t1 <- getCPUTime
+    res <- fun ()
+    t2 <- getCPUTime
+    let secs = ((fromIntegral (t2 - t1)) / (10^12)) :: Double
+    putStrLn (printf msg secs)
+    return res
+dt (AppConfig {profile = False}) msg fun = 
+    fun ()
 
 haskellFileToCmds :: FilePath -> IO [Command]
 haskellFileToCmds filePath = do
