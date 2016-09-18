@@ -21,11 +21,9 @@ data Command = Command Tags String deriving (Ord, Show, Eq)
 
 readConfig :: AppConfig -> IO [Command]
 readConfig appCfg = do
-    home <- getHomeDirectory
-    let configFiles =
-            map (\x -> joinPath [home, x]) [".hub.scm", ".hub.hs", ".hub.md"]
-    cfgFiles <- firstExisting configFiles
-    case cfgFiles of
+    cfgFiles <- getConfigFiles appCfg
+    cfgFile <- firstExisting cfgFiles
+    case cfgFile of
         Just file ->
             dt
                 appCfg
@@ -60,13 +58,21 @@ getShellCmd :: Command -> String
 getShellCmd (Command tags shellCmd) = shellCmd
 
 -- Internal ============================================================
+getConfigFiles appCfg = do
+    home <- getHomeDirectory
+    let defaultFiles =
+            map (\x -> joinPath [home, x]) [".hub.scm", ".hub.hs", ".hub.md"]
+    case userConfig appCfg of
+      "" -> return defaultFiles
+      x -> return [x]
+
 fileToCmds :: FilePath -> IO [Command]
 fileToCmds filepath = do
-  case takeExtension filepath of
-    ".scm" -> schemeFileToCmds filepath
-    ".hs" -> haskellFileToCmds filepath
-    ".md" -> markdownFileToCmds filepath
-    _ -> error "Not supported config file extension."
+    case takeExtension filepath of
+        ".scm" -> schemeFileToCmds filepath
+        ".hs" -> haskellFileToCmds filepath
+        ".md" -> markdownFileToCmds filepath
+        _ -> error "Not supported config file extension."
 
 dt (AppConfig {profile = True}) msg fun = do
     t1 <- getCPUTime
@@ -99,11 +105,7 @@ interpretHaskell filePath = do
 
 schemeFileToCmds :: FilePath -> IO [Command]
 schemeFileToCmds filePath = do
-    start <- getCPUTime
     config <- interpretScheme filePath
-    end <- getCPUTime
-    let diff = (fromIntegral (end - start)) / (10^12)
-    printf "Computation time: %0.3f sec\n" (diff :: Double)
     toCommandList config
 
 interpretScheme :: FilePath -> IO [(String, [String], String)]
