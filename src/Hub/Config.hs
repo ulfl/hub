@@ -1,7 +1,12 @@
 -- Copyright (C) 2016 Ulf Leopold
 --
-module Hub.Config (Command, readConfig, filterCmds, mapCmds, getShellCmd) where
-
+module Hub.Config
+  ( Command(Command)
+  , readConfig
+  , filterCmds
+  , mapCmds
+  , getShellCmd
+  ) where
 import Hub.CmdLine
 import System.Directory
 import System.FilePath
