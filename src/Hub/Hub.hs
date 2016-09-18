@@ -26,6 +26,8 @@ import qualified Text.Printf
 
 import System.Process
 import qualified System.Environment
+
+import Hub.CommandType
 import qualified Hub.Config as Hc
 
 import Control.Lens ((^.))
@@ -38,7 +40,7 @@ data FieldName
 data State =
     State (L.List FieldName ListRow) -- The list widget.
           (E.Editor FieldName)       -- The editor widget.
-          [Hc.Command]               -- List of available 'Commands'.
+          [Command]                  -- List of available 'Commands'.
           (Maybe String)             -- Final command to execute.
 
 data ListRow = ListRow String String deriving (Ord, Show, Eq)
@@ -62,7 +64,7 @@ runCmd (Just cmd) = callCommand cmd
 runCmd Nothing = return ()
 
 -- Internal ============================================================
-initialState :: [Hc.Command] -> State
+initialState :: [Command] -> State
 initialState cmds =
     State
         (L.list ListField (Vec.fromList (commandsToRows cmds)) 2)
@@ -150,7 +152,7 @@ lengthOfPrevWord str =
 updateDisplayList
     :: L.List FieldName ListRow
     -> E.Editor FieldName
-    -> [Hc.Command]
+    -> [Command]
     -> L.List FieldName ListRow
 updateDisplayList l ed commands =
     L.listReplace
@@ -170,7 +172,7 @@ getUserInputWords s =
                     then []
                     else tail (reverse (words s))
 
-commandsToRows :: [Hc.Command] -> [ListRow]
+commandsToRows :: [Command] -> [ListRow]
 commandsToRows commands =
     Hc.mapCmds commands (\tags cmd -> ListRow tags cmd)
 

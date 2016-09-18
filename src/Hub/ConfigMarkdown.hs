@@ -2,7 +2,7 @@
 --
 module Hub.ConfigMarkdown (markdownFileToCmds) where
 
-import Hub.Config
+import Hub.CommandType
 import Cheapskate
 import qualified Data.Text as DT
 import qualified Data.Text.Lazy as TL

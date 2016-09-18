@@ -15,7 +15,8 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Hub.Hub, Hub.CmdLine, Hub.Config, Hub.ConfigMarkdown
+  exposed-modules:     Hub.Hub, Hub.CmdLine, Hub.CommandType, Hub.Config,
+                       Hub.ConfigMarkdown, Hub.ConfigLua
   build-depends:       base >= 4.7 && < 5
                      , brick
                      , cheapskate
@@ -29,9 +30,11 @@ library
                      , pretty-show
                      , text-zipper
                      , lens
+                     , cmdargs
                      , hint
                      , husk-scheme
-                     , cmdargs
+                     , hslua
+                     , bytestring
   default-language:    Haskell2010
 
 executable hub
