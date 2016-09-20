@@ -63,7 +63,7 @@ getShellCmd (Command tags shellCmd) = shellCmd
 getConfigFiles appCfg = do
     home <- getHomeDirectory
     let defaultFiles =
-            map (\x -> joinPath [home, x]) [".hub.scm", ".hub.hs", ".hub.md"]
+            map (\x -> joinPath [home, x]) [".hub.lua", ".hub.md"]
     case userConfig appCfg of
       "" -> return defaultFiles
       x -> return [x]
@@ -71,8 +71,8 @@ getConfigFiles appCfg = do
 fileToCmds :: FilePath -> IO [Command]
 fileToCmds filepath = do
     case takeExtension filepath of
-        ".md" -> markdownFileToCmds filepath
         ".lua" -> luaFileToCmds filepath
+        ".md" -> markdownFileToCmds filepath
         ".scm" -> schemeFileToCmds filepath
         ".hs" -> haskellFileToCmds filepath
         _ -> error "Not supported config file extension."
