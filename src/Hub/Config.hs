@@ -64,7 +64,7 @@ getConfigFiles appCfg = do
     home <- getHomeDirectory
     let defaultFiles =
             map (\x -> joinPath [home, x]) [".hub.lua", ".hub.md"]
-    case userConfig appCfg of
+    case config appCfg of
       "" -> return defaultFiles
       x -> return [x]
 
