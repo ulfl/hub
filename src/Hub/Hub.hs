@@ -57,11 +57,17 @@ hub = do
                 State _ _ _ cmd <-
                     M.defaultMain theApp (initialState filteredCmds)
                 return cmd
-    runCmd cmd
+    runCmd appCfg cmd
 
-runCmd :: Maybe String -> IO ()
-runCmd (Just cmd) = callCommand cmd
-runCmd Nothing = return ()
+runCmd :: AppConfig -> Maybe String -> IO ()
+runCmd appCfg (Just cmd) =  do
+    if not (dryrun appCfg) then
+        callCommand cmd
+    else
+        do
+          putStrLn cmd
+          return ()
+runCmd appCfg Nothing = return ()
 
 -- Internal ============================================================
 initialState :: [Command] -> State
