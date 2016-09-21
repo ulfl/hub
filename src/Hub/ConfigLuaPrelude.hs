@@ -31,7 +31,7 @@ end
 
 function split(str)
    words = {}
-   for word in str:gmatch("%w+") do table.insert(words, word) end
+   for word in str:gmatch("[%w-_]+") do table.insert(words, word) end
    return words
 end
 
