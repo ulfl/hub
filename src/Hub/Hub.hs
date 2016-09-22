@@ -127,21 +127,30 @@ appEvent (State l ed commands cmd) e =
     case e of
         V.EvKey (V.KChar 'n') [V.MCtrl] ->
             M.continue (State (L.listMoveDown l) ed commands cmd)
+        V.EvKey V.KDown [] ->
+            M.continue (State (L.listMoveDown l) ed commands cmd)
+
         V.EvKey (V.KChar 'p') [V.MCtrl] ->
             M.continue (State (L.listMoveUp l) ed commands cmd)
+        V.EvKey V.KUp [] ->
+            M.continue (State (L.listMoveUp l) ed commands cmd)
+
         V.EvKey (V.KChar 'w') [V.MCtrl] ->
             let words = head (E.getEditContents ed)
                 len = lengthOfPrevWord words
                 ed2 = foldl (\a x -> E.applyEdit Z.deletePrevChar a) ed [1..len]
                 l2 = updateDisplayList l ed2 commands
             in M.continue (State l2 ed2 commands cmd)
+
         V.EvKey V.KEnter [] ->
             let cmd =
                     case L.listSelectedElement l of
                         Just (_, ListRow tags cmd) -> cmd
                         Nothing -> ""
             in M.halt (State l ed commands (Just cmd))
+
         V.EvKey V.KEsc [] -> M.halt (State l ed commands Nothing)
+
         V.EvKey (V.KChar 'c') [V.MCtrl] -> M.halt (State l ed commands Nothing)
         ev -> do
             ed2 <- E.handleEditorEvent e ed
