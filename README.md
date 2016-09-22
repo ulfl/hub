@@ -36,8 +36,6 @@ For an example config, see [hub.lua](./example/hub.lua)
 
 * Allow search based on partially entered keywords.
 
-* Allow specifying tags you don't want to see.
-
 * Remember popular commands and sort accordingly. Should be easy to
   rerun a command that was just executed.
 
