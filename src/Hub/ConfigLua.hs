@@ -7,9 +7,8 @@ module Hub.ConfigLua (luaFileToCmds) where
 import Hub.CommandType
 import Hub.ConfigLuaPrelude
 
-import qualified Data.ByteString.Char8 as B
 import Scripting.Lua as Lua
-import Text.Printf
+import qualified Data.ByteString.Char8 as B
 import Control.Exception (assert)
 
 luaFileToCmds :: FilePath -> IO [Command]
@@ -46,7 +45,7 @@ getCommand l = do
     rawgeti l (-1) 2
     cmd <- tostring l (-1)
     pop l 1
-    return (Command tags (B.unpack cmd))
+    return (makeCmd tags (B.unpack cmd))
 
 getListOfStrings l = do
     istable l (-1) >>= do (flip assert) (return ())

@@ -61,7 +61,7 @@ parseBlocks blocks tags result = do
                                 | otherwise ->
                                     return
                                         ( tags
-                                        , (Command
+                                        , (makeCmd
                                                (reverse (tagsFromLevelList tags))
                                                (DT.unpack text)) :
                                           result

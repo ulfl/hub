@@ -49,10 +49,10 @@ hub :: IO ()
 hub = do
     appCfg <- getAppConfig
     cmds <- Hc.readConfig appCfg
-    let filteredCmds = Hc.filterCmds (tags appCfg) cmds
+    let filteredCmds = filterCmdsAndTags (tags appCfg) cmds
     cmd <-
         case filteredCmds of
-            [cmd] -> return (Just (Hc.getShellCmd cmd))
+            [cmd] -> return (Just (getShellCmd cmd))
             _ -> do
                 State _ _ _ cmd <-
                     M.defaultMain theApp (initialState filteredCmds)
@@ -164,7 +164,7 @@ updateDisplayList l ed commands =
     L.listReplace
         (Vec.fromList
              (let words = getUserInputWords (head (E.getEditContents ed))
-              in (commandsToRows (Hc.filterCmds words commands))))
+              in (commandsToRows (filterCmdsAndTags words commands))))
         (Just 0)
         l
 
@@ -180,7 +180,7 @@ getUserInputWords s =
 
 commandsToRows :: [Command] -> [ListRow]
 commandsToRows commands =
-    Hc.mapCmds commands (\tags cmd -> ListRow tags cmd)
+    mapCmds commands (\tags cmd -> ListRow tags cmd)
 
 theAttrMap :: A.AttrMap
 theAttrMap =
