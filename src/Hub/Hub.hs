@@ -41,9 +41,12 @@ data State =
     State (L.List FieldName ListRow) -- The list widget.
           (E.Editor FieldName)       -- The editor widget.
           [Command]                  -- List of available 'Commands'.
-          (Maybe String)             -- Final command to execute.
+          Action                     -- Action to take on exit.
 
 data ListRow = ListRow String String deriving (Ord, Show, Eq)
+
+type Cmd = String
+data Action = Run Cmd | Print Cmd | JustExit
 
 hub :: IO ()
 hub = do
@@ -52,22 +55,25 @@ hub = do
     let filteredCmds = filterCmdsAndTags (tags appCfg) cmds
     cmd <-
         case filteredCmds of
-            [cmd] -> return (Just (getShellCmd cmd))
+            [cmd] -> return (Run (getShellCmd cmd))
             _ -> do
                 State _ _ _ cmd <-
                     M.defaultMain theApp (initialState filteredCmds)
                 return cmd
-    runCmd appCfg cmd
+    action appCfg cmd
 
-runCmd :: AppConfig -> Maybe String -> IO ()
-runCmd appCfg (Just cmd) =  do
+action :: AppConfig -> Action -> IO ()
+action appCfg (Run cmd) = do
     if not (dryrun appCfg) then
         callCommand cmd
     else
         do
           putStrLn cmd
           return ()
-runCmd appCfg Nothing = return ()
+action appCfg (Print cmd) = do
+    putStrLn cmd
+    return ()
+action appCfg JustExit = return ()
 
 -- Internal ============================================================
 initialState :: [Command] -> State
@@ -76,7 +82,7 @@ initialState cmds =
         (L.list ListField (Vec.fromList (commandsToRows cmds)) 2)
         (E.editor EditField (str . unlines) (Just 1) "")
         cmds
-        Nothing
+        JustExit
 
 theApp :: M.App State V.Event FieldName
 theApp =
@@ -123,39 +129,39 @@ listDrawElement sel (ListRow tags description) =
                  (vBox [str tags, padLeft (T.Pad 8) (str description)])]
 
 appEvent :: State -> V.Event -> T.EventM FieldName (T.Next State)
-appEvent (State l ed commands cmd) e =
+appEvent (State l ed commands action) e =
     case e of
         V.EvKey (V.KChar 'n') [V.MCtrl] ->
-            M.continue (State (L.listMoveDown l) ed commands cmd)
+            M.continue (State (L.listMoveDown l) ed commands action)
         V.EvKey V.KDown [] ->
-            M.continue (State (L.listMoveDown l) ed commands cmd)
-
+            M.continue (State (L.listMoveDown l) ed commands action)
         V.EvKey (V.KChar 'p') [V.MCtrl] ->
-            M.continue (State (L.listMoveUp l) ed commands cmd)
-        V.EvKey V.KUp [] ->
-            M.continue (State (L.listMoveUp l) ed commands cmd)
-
+            M.continue (State (L.listMoveUp l) ed commands action)
+        V.EvKey V.KUp [] -> M.continue (State (L.listMoveUp l) ed commands action)
         V.EvKey (V.KChar 'w') [V.MCtrl] ->
             let words = head (E.getEditContents ed)
                 len = lengthOfPrevWord words
-                ed2 = foldl (\a x -> E.applyEdit Z.deletePrevChar a) ed [1..len]
+                ed2 =
+                    foldl (\a x -> E.applyEdit Z.deletePrevChar a) ed [1 .. len]
                 l2 = updateDisplayList l ed2 commands
-            in M.continue (State l2 ed2 commands cmd)
-
+            in M.continue (State l2 ed2 commands action)
         V.EvKey V.KEnter [] ->
-            let cmd =
+            let action =
                     case L.listSelectedElement l of
-                        Just (_, ListRow tags cmd) -> cmd
-                        Nothing -> ""
-            in M.halt (State l ed commands (Just cmd))
-
-        V.EvKey V.KEsc [] -> M.halt (State l ed commands Nothing)
-
-        V.EvKey (V.KChar 'c') [V.MCtrl] -> M.halt (State l ed commands Nothing)
+                        Just (_, ListRow tags cmd) -> Run cmd
+                        Nothing -> JustExit
+            in M.halt (State l ed commands action)
+        V.EvKey V.KEsc [] ->
+            let action =
+                    case L.listSelectedElement l of
+                        Just (_, ListRow tags cmd) -> Print cmd
+                        Nothing -> JustExit
+            in M.halt (State l ed commands action)
+        V.EvKey (V.KChar 'c') [V.MCtrl] -> M.halt (State l ed commands JustExit)
         ev -> do
             ed2 <- E.handleEditorEvent e ed
             let l2 = updateDisplayList l ed2 commands
-            M.continue (State l2 ed2 commands cmd)
+            M.continue (State l2 ed2 commands action)
 
 lengthOfPrevWord str =
     let str1 =
