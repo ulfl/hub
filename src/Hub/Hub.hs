@@ -184,14 +184,13 @@ updateDisplayList l ed commands =
         l
 
 getUserInputWords :: String -> [String]
+getUserInputWords [] = []
 getUserInputWords s =
-    let completed = not (null s) && last s == ' '
+    let completed = last s == ' '
         wordList = words s
     in if completed
            then wordList
-           else if null wordList
-                    then []
-                    else tail (reverse (words s))
+           else tail (reverse (words s))
 
 commandsToRows :: [Command] -> [ListRow]
 commandsToRows commands =

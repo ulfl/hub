@@ -32,16 +32,12 @@ filterCmdsAndTags :: [String] -> [Command] -> [Command]
 filterCmdsAndTags searchTags cmds =
     let (tagsToExclude, tagsToInclude) = partition (\x -> isPrefixOf "!" x) searchTags
         tagsToExclude1 = map (drop 1) tagsToExclude
-        included = doFilter tagsToInclude cmds True
-        excludedRemoved = doFilter tagsToExclude1 included False
+        included = doFilter tagsToInclude cmds id
+        excludedRemoved = doFilter tagsToExclude1 included not
     in removeTags excludedRemoved tagsToInclude
 
-doFilter searchTags cmds inclusion =
-    let op =
-            if inclusion
-                then id
-                else not
-    in foldl (\acc tag -> filterCmds (\tags -> op (tag `elem` tags)) acc) cmds searchTags
+doFilter searchTags cmds op =
+    foldl (\acc tag -> filterCmds (\tags -> op (tag `elem` tags)) acc) cmds searchTags
 
 removeTags :: [Command] -> [String] -> [Command]
 removeTags cmds tagsToRemove =
