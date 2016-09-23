@@ -186,11 +186,14 @@ updateDisplayList l ed commands =
 getUserInputWords :: String -> [String]
 getUserInputWords [] = []
 getUserInputWords s =
-    let completed = last s == ' '
-        wordList = words s
+    let wordList = words s
+        completed = last s == ' ' || isLastTagPartialMatch wordList
     in if completed
            then wordList
-           else tail (reverse (words s))
+           else reverse (tail (reverse (wordList)))
+
+isLastTagPartialMatch [] = False
+isLastTagPartialMatch tags = isPartialMatchTag (head (reverse tags))
 
 commandsToRows :: [Command] -> [ListRow]
 commandsToRows commands =

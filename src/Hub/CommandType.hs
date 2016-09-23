@@ -5,9 +5,8 @@ module Hub.CommandType
   , makeCmd
   , getShellCmd
   , mapCmds
-  , filterCmds
   , filterCmdsAndTags
-  , removeTags
+  , isPartialMatchTag
   ) where
 
 import Data.List
@@ -24,21 +23,44 @@ mapCmds :: [Command] -> (String -> String -> b) -> [b]
 mapCmds commands fun =
     map (\(Command tags cmd) -> fun (unwords tags) cmd) commands
 
+filterCmdsAndTags :: [String] -> [Command] -> [Command]
+filterCmdsAndTags [] cmds = cmds
+filterCmdsAndTags (tag:tags) cmds =
+    case (isExcludeTag tag, isPartialMatchTag tag) of
+        (True, False) ->
+            filterCmdsAndTags
+                tags
+                (removeTag
+                     (filterCmds
+                          (\cmdTags -> not (isMatch (dropTagPrefix tag) cmdTags))
+                          cmds)
+                     tag)
+        (False, True) ->
+            filterCmdsAndTags
+                tags
+                (filterCmds
+                     (\cmdTags -> isPartialMatch (dropTagPrefix tag) cmdTags)
+                     cmds)
+        _ ->
+            filterCmdsAndTags
+                tags
+                (removeTag
+                     (filterCmds (\cmdTags -> isMatch tag cmdTags) cmds)
+                     tag)
+
+isExcludeTag x = isPrefixOf "!" x
+isPartialMatchTag x = isPrefixOf "/" x
+
 filterCmds :: ([String] -> Bool) -> [Command] -> [Command]
 filterCmds fun commands =
     filter (\(Command tags cmd) -> fun tags) commands
 
-filterCmdsAndTags :: [String] -> [Command] -> [Command]
-filterCmdsAndTags searchTags cmds =
-    let (tagsToExclude, tagsToInclude) = partition (\x -> isPrefixOf "!" x) searchTags
-        tagsToExclude1 = map (drop 1) tagsToExclude
-        included = doFilter tagsToInclude cmds id
-        excludedRemoved = doFilter tagsToExclude1 included not
-    in removeTags excludedRemoved tagsToInclude
+dropTagPrefix tag = (drop 1) tag
 
-doFilter searchTags cmds op =
-    foldl (\acc tag -> filterCmds (\tags -> op (tag `elem` tags)) acc) cmds searchTags
+isMatch tag tags = tag `elem` tags
 
-removeTags :: [Command] -> [String] -> [Command]
-removeTags cmds tagsToRemove =
-    map (\(Command tags cmd) -> Command (tags \\ tagsToRemove) cmd) cmds
+isPartialMatch partialTag tags = any (isInfixOf partialTag) tags
+
+removeTag :: [Command] -> String -> [Command]
+removeTag cmds tag =
+    map (\(Command cmdTags cmd) -> Command (cmdTags \\ [tag]) cmd) cmds
