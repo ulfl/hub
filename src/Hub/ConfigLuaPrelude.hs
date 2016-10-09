@@ -80,4 +80,25 @@ function append(cmds, ...)
    end
    return cmds
 end
+
+function trim(s)
+  return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
+function os.capture(cmd)
+  local f = assert(io.popen(cmd, 'r'))
+  local s = assert(f:read('*a'))
+  f:close()
+  return s
+end
+
+function web(tags, cmd)
+   local open_cmd
+   if trim(os.capture("uname")) == "Darwin" then
+      open_cmd = "open"
+   else
+      open_cmd = "xdg-open"
+   end
+   return {{handleTagsSpec(tags), open_cmd .. " " .. cmd}}
+end
 |]
