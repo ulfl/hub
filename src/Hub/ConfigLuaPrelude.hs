@@ -7,8 +7,15 @@ module Hub.ConfigLuaPrelude (hubLuaPrelude) where
 import Data.String.Here
 
 hubLuaPrelude = [here|
-function tags(tags, cmds)
+function tags(tags, cmds, ...)
    tags = handleTagsSpec(tags)
+
+   for i,v in ipairs(arg) do
+      for _, w in pairs(v) do
+         table.insert(cmds, w)
+      end
+   end
+
    return(map(function (cmd) return prependTags(tags, cmd) end, cmds))
 end
 
@@ -21,6 +28,7 @@ function command(tags, cmd)
    return {{handleTagsSpec(tags), cmd}}
 end
 
+-------------------------------------------------------------------------------
 function handleTagsSpec(tags)
    if type(tags) == 'table' then
       return tags
@@ -72,15 +80,7 @@ function deepcopy(orig)
     return copy
 end
 
-function append(cmds, ...)
-   for i,v in ipairs(arg) do
-      for _, w in pairs(v) do
-         table.insert(cmds, w)
-      end
-   end
-   return cmds
-end
-
+-------------------------------------------------------------------------------
 function trim(s)
   return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
