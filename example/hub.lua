@@ -15,6 +15,7 @@ end
 
 cmds = tags("bookshop",
             tags("staging", bookshop("staging.bookshop3425987.com")),
-            tags("production", bookshop("production.bookshop3425987.com")))
+            tags("us usa production", bookshop("production.us.bookshop3425987.com")),
+            tags("eu europe production", bookshop("production.eu.bookshop3425987.com")))
 
 return(cmds)
