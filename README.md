@@ -19,7 +19,7 @@ config files. You can for example define your own personal commands in
 the root configuration file and then include shared configuration
 files for the development team (for example stored in git
 repositories). Hub expects the root configuration file to reside in
-```~/.hub.lua``` or ```~/.hub.md```.
+`~/.hub.lua` or `~/.hub.md`.
 
 Nested config files are included as follows in Lua:
 
@@ -31,6 +31,21 @@ and as follows in markdown files:
     /absolute/path/to/file.md
     ```
 For an example config, see [hub.lua](./example/hub.lua)
+
+# Installation
+
+## OSX
+
+```bash
+brew tap ulfl/tap
+brew install ulfl/tap/hub
+```
+
+
+## Ubuntu/Debian
+
+Copy the prebuilt `binaries/hub-ubuntu` into your path and rename it to `hub`.
+
 
 # TODO
 
