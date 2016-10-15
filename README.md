@@ -1,4 +1,13 @@
-# Hub
+# Hub demo
+
+The movie below shows Hub in action. Since the DNS names are fake,
+none of the executed commands actually work, but you should get the
+idea. This is the Hub config used in the demo
+([hub.lua](./example/hub.lua)).
+
+![hub-demo](demo.gif)
+
+# Description
 
 Hub is a command line tool for keeping track of common shell commands
 for yourself and across a development team. These could be commands
