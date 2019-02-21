@@ -38,10 +38,10 @@ data FieldName
      deriving (Ord, Show, Eq)
 
 data State =
-    State (L.List FieldName ListRow) -- The list widget.
-          (E.Editor FieldName)       -- The editor widget.
-          [Command]                  -- List of available 'Commands'.
-          Action                     -- Action to take on exit.
+    State (L.List FieldName ListRow)  -- The list widget.
+          (E.Editor String FieldName) -- The editor widget.
+          [Command]                   -- List of available 'Commands'.
+          Action                      -- Action to take on exit.
 
 data ListRow = ListRow String String deriving (Ord, Show, Eq)
 
@@ -80,7 +80,7 @@ initialState :: [Command] -> State
 initialState cmds =
     State
         (L.list ListField (Vec.fromList (commandsToRows cmds)) 2)
-        (E.editor EditField (str . unlines) (Just 1) "")
+        (E.editor EditField (Just 1) "")
         cmds
         JustExit
 
@@ -92,7 +92,6 @@ theApp =
     , M.appHandleEvent = appEvent
     , M.appStartEvent = return
     , M.appAttrMap = const theAttrMap
-    , M.appLiftVtyEvent = id
     }
 
 drawUI :: State -> [Widget FieldName]
@@ -100,7 +99,7 @@ drawUI state = [ui]
   where
     State l e cmds _ = state
     box = L.renderList listDrawElement False l
-    prompt = E.renderEditor True e
+    prompt = E.renderEditor (str . unlines) True e
     ui =
         vBox
             [ box
@@ -128,9 +127,9 @@ listDrawElement sel (ListRow tags description) =
                  T.Max
                  (vBox [str tags, padLeft (T.Pad 8) (str description)])]
 
-appEvent :: State -> V.Event -> T.EventM FieldName (T.Next State)
-appEvent (State l ed commands action) e =
-    case e of
+appEvent :: State -> T.BrickEvent FieldName e -> T.EventM FieldName (T.Next State)
+appEvent (State l ed commands action) be = case be of
+    T.VtyEvent e -> case e of
         V.EvKey (V.KChar 'n') [V.MCtrl] ->
             M.continue (State (L.listMoveDown l) ed commands action)
         V.EvKey V.KDown [] ->
@@ -162,6 +161,7 @@ appEvent (State l ed commands action) e =
             ed2 <- E.handleEditorEvent e ed
             let l2 = updateDisplayList l ed2 commands
             M.continue (State l2 ed2 commands action)
+    _ -> M.continue (State l ed commands action)
 
 lengthOfPrevWord str =
     let str1 =
@@ -172,7 +172,7 @@ lengthOfPrevWord str =
 
 updateDisplayList
     :: L.List FieldName ListRow
-    -> E.Editor FieldName
+    -> E.Editor String FieldName
     -> [Command]
     -> L.List FieldName ListRow
 updateDisplayList l ed commands =

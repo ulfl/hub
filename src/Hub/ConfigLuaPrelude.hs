@@ -10,7 +10,7 @@ hubLuaPrelude = [here|
 function tags(tags, cmds, ...)
    tags = handleTagsSpec(tags)
 
-   for i,v in ipairs(arg) do
+   for i,v in ipairs({...}) do
       for _, w in pairs(v) do
          table.insert(cmds, w)
       end
