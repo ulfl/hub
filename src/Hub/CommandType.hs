@@ -10,9 +10,16 @@ module Hub.CommandType
   ) where
 
 import Data.List
+import Foreign.Lua
 
 type Tags = [String]
 data Command = Command Tags String deriving (Ord, Show, Eq)
+
+instance FromLuaStack Command where
+    peek idx = do
+        tags <- rawgeti idx 1 *> peek (-1) <* pop 1
+        cmd <- rawgeti idx 2 *> peek (-1) <* pop 1
+        return $ makeCmd tags cmd
 
 makeCmd :: Tags -> String -> Command
 makeCmd = Command
