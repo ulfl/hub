@@ -25,7 +25,7 @@ readConfig appCfg = do
                 (\_ -> loadCommands file)
         Nothing -> return []
 
-configFile appCfg = do fileCandidates appCfg >>= firstExisting
+configFile appCfg = fileCandidates appCfg >>= firstExisting
 
 fileCandidates appCfg = do
     home <- getHomeDirectory
@@ -45,18 +45,18 @@ firstExisting (filePath : filePaths) = do
       firstExisting filePaths
 
 loadCommands :: FilePath -> IO [Command]
-loadCommands filepath = do
+loadCommands filepath =
     case takeExtension filepath of
         ".lua" -> luaFileToCmds filepath
         ".md" -> markdownFileToCmds filepath
         _ -> error "Not supported config file extension."
 
-dt (AppConfig {profile = True}) msg fun = do
+dt AppConfig {profile = True} msg fun = do
     t1 <- getCPUTime
     res <- fun ()
     t2 <- getCPUTime
-    let secs = ((fromIntegral (t2 - t1)) / (10^12)) :: Double
+    let secs = (fromIntegral (t2 - t1) / (10^12)) :: Double
     putStrLn (printf msg secs)
     return res
-dt (AppConfig {profile = False}) msg fun = 
+dt AppConfig {profile = False} msg fun =
     fun ()

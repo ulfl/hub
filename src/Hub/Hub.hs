@@ -63,16 +63,12 @@ hub = do
     action appCfg cmd
 
 action :: AppConfig -> Action -> IO ()
-action appCfg (Run cmd) = do
+action appCfg (Run cmd) =
     if not (dryrun appCfg) then
         callCommand cmd
     else
-        do
-          putStrLn cmd
-          return ()
-action appCfg (Print cmd) = do
-    putStrLn cmd
-    return ()
+        putStrLn cmd
+action appCfg (Print cmd) = putStrLn cmd
 action appCfg JustExit = return ()
 
 -- Internal ============================================================
@@ -165,10 +161,10 @@ appEvent (State l ed commands action) be = case be of
 
 lengthOfPrevWord str =
     let str1 =
-            (dropWhile
-                 (not . Data.Char.isSpace)
-                 (dropWhile Data.Char.isSpace (reverse str)))
-    in (length str) - (length str1)
+            dropWhile
+                (not . Data.Char.isSpace)
+                (dropWhile Data.Char.isSpace (reverse str))
+    in length str - length str1
 
 updateDisplayList
     :: L.List FieldName ListRow
@@ -179,7 +175,7 @@ updateDisplayList l ed commands =
     L.listReplace
         (Vec.fromList
              (let words = getUserInputWords (head (E.getEditContents ed))
-              in (commandsToRows (filterCmdsAndTags words commands))))
+              in commandsToRows (filterCmdsAndTags words commands)))
         (Just 0)
         l
 
@@ -190,14 +186,14 @@ getUserInputWords s =
         completed = last s == ' ' || isLastTagPartialMatch wordList
     in if completed
            then wordList
-           else reverse (tail (reverse (wordList)))
+           else init wordList
 
 isLastTagPartialMatch [] = False
-isLastTagPartialMatch tags = isPartialMatchTag (head (reverse tags))
+isLastTagPartialMatch tags = isPartialMatchTag (last tags)
 
 commandsToRows :: [Command] -> [ListRow]
 commandsToRows commands =
-    mapCmds commands (\tags cmd -> ListRow tags cmd)
+    mapCmds commands ListRow
 
 theAttrMap :: A.AttrMap
 theAttrMap =

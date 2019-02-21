@@ -22,8 +22,8 @@ luaFileToCmds filePath = runLua $ do
 
 getCommands :: Lua [Command]
 getCommands = do
-    istable (-1) >>= do (flip assert) (return ())
-    len <- objlen (-1)
+    istable (-1) >>= flip assert (return ())
+    len <- rawlen (-1)
     getCommandsHelper [] len
 
 getCommandsHelper :: [Command] -> Int -> Lua [Command]
@@ -45,14 +45,14 @@ getCommand = do
     return (makeCmd tags (B.unpack cmd))
 
 getListOfStrings = do
-    istable (-1) >>= do (flip assert) (return ())
-    len <- objlen (-1)
+    istable (-1) >>= flip assert (return ())
+    len <- rawlen (-1)
     getListOfStringsHelper [] len
 
-getListOfStringsHelper acc 0 = do return acc
+getListOfStringsHelper acc 0 = return acc
 getListOfStringsHelper acc count = do
-    istable (-1) >>= do (flip assert) (return ())
+    istable (-1) >>= flip assert (return ())
     rawgeti (-1) count
     s <- tostring (-1)
     pop 1
-    getListOfStringsHelper ((B.unpack s):acc) (count - 1)
+    getListOfStringsHelper (B.unpack s : acc) (count - 1)
