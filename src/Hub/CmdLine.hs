@@ -15,6 +15,7 @@ data AppConfig = AppConfig
     , tags :: [String]
     } deriving (Show, Data, Typeable)
 
+cfg :: AppConfig
 cfg =
     AppConfig
     { profile = def &= name "p" &= help "Enable profiling"

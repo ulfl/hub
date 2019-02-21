@@ -6,83 +6,43 @@ module Hub.ConfigLuaPrelude (hubLuaPrelude) where
 
 import Data.String.Here
 
+hubLuaPrelude :: String
 hubLuaPrelude = [here|
-function tags(tags, cmds, ...)
-   tags = handleTagsSpec(tags)
-
-   for i,v in ipairs(arg) do
-      for _, w in pairs(v) do
-         table.insert(cmds, w)
-      end
-   end
-
-   return(map(function (cmd) return prependTags(tags, cmd) end, cmds))
-end
-
-function commands(tags, cmdFormat)
-   return map(function (x) return {{x}, string.format(cmdFormat, x)} end,
-      handleTagsSpec(tags))
-end
-
-function command(tags, cmd)
-   return {{handleTagsSpec(tags), cmd}}
-end
-
 -------------------------------------------------------------------------------
-function handleTagsSpec(tags)
-   if type(tags) == 'table' then
-      return tags
-   elseif type(tags) == 'string' then
-      return split(tags)
+-- Extensions to the stdlib
+
+function table.map(t, f)
+   local rv = {}
+   for i, v in ipairs(t) do
+      rv[i] = f(v)
+   end
+   return rv
+end
+
+function table.extend(t, o)
+   for _, v in pairs(o) do
+      table.insert(t, v)
    end
 end
 
-function split(str)
-   words = {}
-   for word in str:gmatch("[%w-_]+") do table.insert(words, word) end
-   return words
-end
-
-function map(func, array)
-   local newArray = {}
-   for i,v in ipairs(array) do
-      newArray[i] = func(v)
+function table.concat(...)
+   local rv = {}
+   for _, o in pairs({...}) do
+      table.extend(rv, o)
    end
-   return newArray
+   return rv
 end
 
-function prependTags(tags, cmd)
-   local newTags = {}
+function string.trim(s)
+  return s:gsub("^%s*(.-)%s*$", "%1")
+end
 
-   for _, v in ipairs(tags) do
-      table.insert(newTags, v)
+function string.split(s)
+   local rv = {}
+   for v in s:gmatch("[%w-_]+") do
+      table.insert(rv, v)
    end
-
-   for _, v in ipairs(cmd[1]) do
-      table.insert(newTags, v)
-   end
-
-   return {newTags, cmd[2]}
-end
-
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
--------------------------------------------------------------------------------
-function trim(s)
-  return (s:gsub("^%s*(.-)%s*$", "%1"))
+   return rv
 end
 
 function os.capture(cmd)
@@ -92,13 +52,52 @@ function os.capture(cmd)
   return s
 end
 
+-------------------------------------------------------------------------------
+-- Public API
+
+function command(tags, cmd)
+   tags = _tags(tags)
+   return { _make(tags, cmd) }
+end
+
+function commands(tags, fmt)
+   tags = _tags(tags)
+   return table.map(tags, function (t)
+       return _make({ t }, fmt:format(t))
+   end)
+end
+
 function web(tags, cmd)
-   local open_cmd
-   if trim(os.capture("uname")) == "Darwin" then
-      open_cmd = "open"
-   else
-      open_cmd = "xdg-open"
+   tags = _tags(tags)
+   return { _make(tags, open_cmd .. " " .. cmd) }
+end
+
+function tags(tags, ...)
+   tags = _tags(tags)
+   return table.map(table.concat(...), function (cmd)
+     return { table.concat(tags, cmd[1]), cmd[2] }
+   end)
+end
+
+-------------------------------------------------------------------------------
+-- Helper functions
+
+_open_cmd = ""
+if os.capture("uname"):trim() == "Darwin" then
+   open_cmd = "open"
+else
+   open_cmd = "xdg-open"
+end
+
+function _make(tags, cmd)
+    return { tags, cmd }
+end
+
+function _tags(tags)
+   if type(tags) == 'table' then
+      return tags
+   elseif type(tags) == 'string' then
+      return tags:split()
    end
-   return {{handleTagsSpec(tags), open_cmd .. " " .. cmd}}
 end
 |]

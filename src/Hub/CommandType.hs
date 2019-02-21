@@ -10,14 +10,22 @@ module Hub.CommandType
   ) where
 
 import Data.List
+import Foreign.Lua
 
 type Tags = [String]
 data Command = Command Tags String deriving (Ord, Show, Eq)
 
-makeCmd tags cmd = Command tags cmd
+instance FromLuaStack Command where
+    peek idx = do
+        tags <- rawgeti idx 1 *> peek (-1) <* pop 1
+        cmd <- rawgeti idx 2 *> peek (-1) <* pop 1
+        return $ makeCmd tags cmd
+
+makeCmd :: Tags -> String -> Command
+makeCmd = Command
 
 getShellCmd :: Command -> String
-getShellCmd (Command tags shellCmd) = shellCmd
+getShellCmd (Command _ shellCmd) = shellCmd
 
 mapCmds :: [Command] -> (String -> String -> b) -> [b]
 mapCmds commands fun =
@@ -32,35 +40,41 @@ filterCmdsAndTags (tag:tags) cmds =
                 tags
                 (removeTag
                      (filterCmds
-                          (\cmdTags -> not (isMatch (dropTagPrefix tag) cmdTags))
+                          (not . isMatch (dropTagPrefix tag))
                           cmds)
                      tag)
         (False, True) ->
             filterCmdsAndTags
                 tags
                 (filterCmds
-                     (\cmdTags -> isPartialMatch (dropTagPrefix tag) cmdTags)
+                     (isPartialMatch (dropTagPrefix tag))
                      cmds)
         _ ->
             filterCmdsAndTags
                 tags
                 (removeTag
-                     (filterCmds (\cmdTags -> isMatch tag cmdTags) cmds)
+                     (filterCmds (isMatch tag) cmds)
                      tag)
 
-isExcludeTag x = isPrefixOf "!" x
-isPartialMatchTag x = isPrefixOf "/" x
+isExcludeTag :: String -> Bool
+isExcludeTag = isPrefixOf "!"
+
+isPartialMatchTag :: String -> Bool
+isPartialMatchTag = isPrefixOf "/"
 
 filterCmds :: ([String] -> Bool) -> [Command] -> [Command]
-filterCmds fun commands =
-    filter (\(Command tags cmd) -> fun tags) commands
+filterCmds fun =
+    filter (\(Command tags _) -> fun tags)
 
-dropTagPrefix tag = (drop 1) tag
+dropTagPrefix :: String -> String
+dropTagPrefix = drop 1
 
+isMatch :: String -> Tags -> Bool
 isMatch tag tags = tag `elem` tags
 
-isPartialMatch partialTag tags = any (isInfixOf partialTag) tags
+isPartialMatch :: String -> Tags -> Bool
+isPartialMatch partialTag = any (isInfixOf partialTag)
 
 removeTag :: [Command] -> String -> [Command]
 removeTag cmds tag =
-    map (\(Command cmdTags cmd) -> Command (cmdTags \\ [tag]) cmd) cmds
+    map (\(Command tags cmd) -> Command (tags \\ [tag]) cmd) cmds

@@ -1,13 +1,9 @@
-resolver: lts-6.16
+resolver: lts-12.26
 
 packages:
  - '.'
 
-extra-deps:
- - brick-0.8
- - kan-extensions-5.0.1
- - lens-4.14
- - QuickCheck-2.9.2
+extra-deps: []
 
 flags: {}
 
