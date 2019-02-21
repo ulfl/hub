@@ -6,6 +6,7 @@ module Hub.ConfigLuaPrelude (hubLuaPrelude) where
 
 import Data.String.Here
 
+hubLuaPrelude :: String
 hubLuaPrelude = [here|
 -------------------------------------------------------------------------------
 -- Extensions to the stdlib

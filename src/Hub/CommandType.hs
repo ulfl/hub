@@ -14,10 +14,11 @@ import Data.List
 type Tags = [String]
 data Command = Command Tags String deriving (Ord, Show, Eq)
 
+makeCmd :: Tags -> String -> Command
 makeCmd = Command
 
 getShellCmd :: Command -> String
-getShellCmd (Command tags shellCmd) = shellCmd
+getShellCmd (Command _ shellCmd) = shellCmd
 
 mapCmds :: [Command] -> (String -> String -> b) -> [b]
 mapCmds commands fun =
@@ -48,17 +49,23 @@ filterCmdsAndTags (tag:tags) cmds =
                      (filterCmds (isMatch tag) cmds)
                      tag)
 
+isExcludeTag :: String -> Bool
 isExcludeTag = isPrefixOf "!"
+
+isPartialMatchTag :: String -> Bool
 isPartialMatchTag = isPrefixOf "/"
 
 filterCmds :: ([String] -> Bool) -> [Command] -> [Command]
 filterCmds fun =
     filter (\(Command tags _) -> fun tags)
 
+dropTagPrefix :: String -> String
 dropTagPrefix = drop 1
 
+isMatch :: String -> Tags -> Bool
 isMatch tag tags = tag `elem` tags
 
+isPartialMatch :: String -> Tags -> Bool
 isPartialMatch partialTag = any (isInfixOf partialTag)
 
 removeTag :: [Command] -> String -> [Command]

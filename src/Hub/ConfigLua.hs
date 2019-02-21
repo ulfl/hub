@@ -14,9 +14,9 @@ import Control.Exception (assert)
 luaFileToCmds :: FilePath -> IO [Command]
 luaFileToCmds filePath = runLua $ do
     openlibs
-    loadstring hubLuaPrelude
+    _ <- loadstring hubLuaPrelude
     call 0 0
-    loadfile filePath
+    _ <-loadfile filePath
     call 0 1
     getCommands
 
@@ -44,11 +44,13 @@ getCommand = do
     pop 1
     return (makeCmd tags (B.unpack cmd))
 
+getListOfStrings :: Lua [String]
 getListOfStrings = do
     istable (-1) >>= flip assert (return ())
     len <- rawlen (-1)
     getListOfStringsHelper [] len
 
+getListOfStringsHelper :: [String] -> Int -> Lua [String]
 getListOfStringsHelper acc 0 = return acc
 getListOfStringsHelper acc count = do
     istable (-1) >>= flip assert (return ())

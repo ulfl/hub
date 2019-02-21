@@ -1,5 +1,7 @@
 -- Copyright (C) 2016 Ulf Leopold
 --
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hub.Hub (hub) where
@@ -11,7 +13,6 @@ import qualified Brick.Main as M
 import qualified Brick.Types as T
 import qualified Brick.Widgets.List as L
 import qualified Brick.Widgets.Edit as E
-import qualified Brick.Focus as F
 import qualified Brick.AttrMap as A
 import qualified Data.Vector as Vec
 import qualified Data.Char
@@ -19,13 +20,11 @@ import Brick.Types (Widget)
 import Brick.Widgets.Core
        (str, vLimit, hLimit, hBox, vBox, withAttr, padLeft, padRight,
         fill)
-import Brick.Util (fg, on)
-import Data.Monoid
+import Brick.Util (on)
 import qualified Data.Text.Zipper as Z
 import qualified Text.Printf
 
 import System.Process
-import qualified System.Environment
 
 import Hub.CommandType
 import qualified Hub.Config as Hc
@@ -68,8 +67,8 @@ action appCfg (Run cmd) =
         callCommand cmd
     else
         putStrLn cmd
-action appCfg (Print cmd) = putStrLn cmd
-action appCfg JustExit = return ()
+action _ (Print cmd) = putStrLn cmd
+action _ JustExit = return ()
 
 -- Internal ============================================================
 initialState :: [Command] -> State
@@ -137,28 +136,29 @@ appEvent (State l ed commands action) be = case be of
             let words = head (E.getEditContents ed)
                 len = lengthOfPrevWord words
                 ed2 =
-                    foldl (\a x -> E.applyEdit Z.deletePrevChar a) ed [1 .. len]
+                    foldl (\a _ -> E.applyEdit Z.deletePrevChar a) ed [1 .. len]
                 l2 = updateDisplayList l ed2 commands
             in M.continue (State l2 ed2 commands action)
         V.EvKey V.KEnter [] ->
             let action =
                     case L.listSelectedElement l of
-                        Just (_, ListRow tags cmd) -> Run cmd
+                        Just (_, ListRow _ cmd) -> Run cmd
                         Nothing -> JustExit
             in M.halt (State l ed commands action)
         V.EvKey V.KEsc [] ->
             let action =
                     case L.listSelectedElement l of
-                        Just (_, ListRow tags cmd) -> Print cmd
+                        Just (_, ListRow _ cmd) -> Print cmd
                         Nothing -> JustExit
             in M.halt (State l ed commands action)
         V.EvKey (V.KChar 'c') [V.MCtrl] -> M.halt (State l ed commands JustExit)
-        ev -> do
+        _ -> do
             ed2 <- E.handleEditorEvent e ed
             let l2 = updateDisplayList l ed2 commands
             M.continue (State l2 ed2 commands action)
     _ -> M.continue (State l ed commands action)
 
+lengthOfPrevWord :: String -> Int
 lengthOfPrevWord str =
     let str1 =
             dropWhile
@@ -188,6 +188,7 @@ getUserInputWords s =
            then wordList
            else init wordList
 
+isLastTagPartialMatch :: [String] -> Bool
 isLastTagPartialMatch [] = False
 isLastTagPartialMatch tags = isPartialMatchTag (last tags)
 

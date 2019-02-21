@@ -5,7 +5,6 @@ module Hub.ConfigMarkdown (markdownFileToCmds) where
 import Hub.CommandType
 import Cheapskate
 import qualified Data.Text as DT
-import qualified Data.Text.Lazy as TL
 import qualified Data.Sequence as SEQ
 
 markdownFileToCmds :: FilePath -> IO [Command]
@@ -17,7 +16,7 @@ markdownFileToCmds filePath = do
 fileToBlocks :: FilePath -> IO Blocks
 fileToBlocks fileName = do
     contents <- readFile fileName
-    let Doc options blocks = toMarkdown (DT.pack contents)
+    let Doc _ blocks = toMarkdown (DT.pack contents)
     return blocks
 
 toMarkdown :: DT.Text -> Doc
@@ -51,8 +50,7 @@ parseBlocks blocks tags result = do
                             , SEQ.empty)
             CodeBlock codeattr text ->
                 case codeattr of
-                    CodeAttr {codeLang = lang
-                             ,codeInfo = info}
+                    CodeAttr {codeLang = lang}
                         | lang == DT.pack "include" -> do
                             b <- fileToBlocks (DT.unpack text)
                             return (tags, result, b)
@@ -67,15 +65,18 @@ parseBlocks blocks tags result = do
             _ -> return (tags, result, SEQ.empty)
     parseBlocks ((SEQ.><) nb (SEQ.drop 1 blocks)) tags1 result1
 
-dropPastLevel [] headerLevel = []
-dropPastLevel ((lev, tags):rest) headerLevel
+dropPastLevel :: Ord a => [(a, b)] -> a -> [(a, b)]
+dropPastLevel [] _ = []
+dropPastLevel ((lev, _):rest) headerLevel
     | lev <= headerLevel = rest
     | otherwise = dropPastLevel rest headerLevel
 
+tagsFromLevelList :: [(a, [b])] -> [b]
 tagsFromLevelList [] = []
-tagsFromLevelList ((lev, tags):rest) =
+tagsFromLevelList ((_, tags):rest) =
     tags ++ tagsFromLevelList rest
 
+inlinesToWords :: Inlines -> [String]
 inlinesToWords inlines = inlinesToWordsHelp inlines []
 
 inlinesToWordsHelp :: Inlines -> [String] -> [String]
