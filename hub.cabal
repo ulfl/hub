@@ -26,16 +26,13 @@ library
                      , process
                      , vector
                      , containers
-                     , pretty-show
                      , text-zipper
                      , lens
                      , cmdargs
                      , hslua
                      , cheapskate
-                     , hint
                      , bytestring
                      , here
-                     , QuickCheck
   default-language:    Haskell2010
 
 executable hub
