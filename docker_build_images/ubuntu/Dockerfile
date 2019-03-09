@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 RUN apt-get update && \
     apt-get install -y netbase && \
@@ -10,4 +10,3 @@ RUN apt-get update && \
 
 RUN cabal update
 RUN cabal install stack
-
