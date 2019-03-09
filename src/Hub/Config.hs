@@ -34,8 +34,8 @@ fileCandidates appCfg = do
     let defaultFiles =
             map (\x -> joinPath [home, x]) [".hub.lua", ".hub.md"]
     case config appCfg of
-      "" -> return defaultFiles
-      x -> return [x]
+      Nothing -> return defaultFiles
+      Just x -> return [x]
 
 firstExisting :: [FilePath] -> IO (Maybe FilePath)
 firstExisting [] = return Nothing
