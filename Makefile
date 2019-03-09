@@ -5,7 +5,7 @@ install:
 	stack install
 
 ubuntu-build:
-	docker build -t hub-build-ubuntu docker_build_images/ubuntu
+	docker build -t hub-build-ubuntu docker-build-images/ubuntu
 	docker run -v `pwd`:/host -it hub-build-ubuntu:latest /bin/bash -c \
 	"cd /host && /root/.cabal/bin/stack setup && /root/.cabal/bin/stack build"
 
