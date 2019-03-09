@@ -1,4 +1,4 @@
--- Copyright (C) 2016 Ulf Leopold
+-- Copyright (C) 2016-2019 Ulf Leopold
 --
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 

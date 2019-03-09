@@ -1,4 +1,4 @@
--- Copyright (C) 2016 Ulf Leopold
+-- Copyright (C) 2016-2019 Ulf Leopold
 --
 {-# LANGUAGE DeriveDataTypeable #-}
 module Hub.CmdLine
@@ -24,7 +24,7 @@ cfg =
         def &= name "d" &= help "Print the selected command, don't execute it"
     , tags = def &= args
     } &=
-    summary "Hub, Copyright (C) 2016 Ulf Leopold"
+    summary "Hub, Copyright (C) 2016-2019 Ulf Leopold"
 
 getAppConfig :: IO AppConfig
 getAppConfig = cmdArgs cfg
