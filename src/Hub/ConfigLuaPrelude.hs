@@ -1,7 +1,5 @@
 -- Copyright (C) 2016-2019 Ulf Leopold
 --
-{-# LANGUAGE QuasiQuotes #-}
-
 module Hub.ConfigLuaPrelude (hubLuaPrelude) where
 
 import Data.String.Here

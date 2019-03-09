@@ -34,6 +34,21 @@ library
                      , text-zipper >=0.10.1 && <0.11
                      , vector >=0.12.0 && <0.13
                      , vty >=5.16 && <5.22
+  default-extensions: DataKinds
+                      DeriveGeneric
+                      DeriveFunctor
+                      FlexibleContexts
+                      FlexibleInstances
+                      LambdaCase
+                      MultiParamTypeClasses
+                      OverloadedStrings
+                      RankNTypes
+                      RecordWildCards
+                      ScopedTypeVariables
+                      TypeApplications
+                      TypeFamilies
+                      TypeOperators
+                      QuasiQuotes
   default-language:    Haskell2010
 
 executable hub

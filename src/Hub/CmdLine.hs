@@ -1,7 +1,5 @@
 -- Copyright (C) 2016-2019 Ulf Leopold
 --
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module Hub.CmdLine
   ( getAppConfig
   , AppConfig(..)

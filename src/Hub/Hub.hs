@@ -2,8 +2,6 @@
 --
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-{-# LANGUAGE OverloadedStrings #-}
-
 module Hub.Hub (hub) where
 
 import Hub.CmdLine
