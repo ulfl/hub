@@ -10,7 +10,7 @@ ubuntu-build:
 	"cd /host && /root/.cabal/bin/stack setup && /root/.cabal/bin/stack build"
 
 binaries: all ubuntu-build
-	cp .stack-work/install/x86_64-osx/lts-6.16/7.10.3/bin/hub \
+	cp .stack-work/install/x86_64-osx/lts-12.26/8.4.4/bin/hub \
 		binaries/hub-osx
-	cp .stack-work/install/x86_64-linux/lts-6.16/7.10.3/bin/hub \
+	cp .stack-work/install/x86_64-linux/lts-12.26/8.4.4/bin/hub \
 		binaries/hub-ubuntu
