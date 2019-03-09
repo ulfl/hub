@@ -43,6 +43,7 @@ import Brick.Widgets.List
   , renderList
   )
 import Control.Lens ((^.))
+import Control.Monad (when)
 import Data.Char (isSpace)
 import Data.Text.Zipper (deletePrevChar)
 import Data.Vector (fromList)
@@ -64,8 +65,10 @@ import Hub.CommandType
   , getShellCmd
   , isPartialMatchTag
   , mapCmds
+  , toStdout
   )
 import Hub.Config (readConfig)
+import System.Exit (exitSuccess)
 import System.Process (callCommand)
 import Text.Printf (printf)
 
@@ -97,6 +100,10 @@ hub = do
   appCfg <- getAppConfig
   cmds <- readConfig appCfg
   let filteredCmds = filterCmdsAndTags (tags appCfg) cmds
+  when
+    (stdOut appCfg)
+    (do mapM_ toStdout filteredCmds
+        exitSuccess :: IO ())
   cmd <-
     case filteredCmds of
       [cmd] -> return (Run (getShellCmd cmd))

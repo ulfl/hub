@@ -7,19 +7,25 @@ module Hub.CommandType
   , mapCmds
   , filterCmdsAndTags
   , isPartialMatchTag
+  , toStdout
   ) where
 
-import Data.List
-import Foreign.Lua
+import Data.List ((\\), intercalate, isInfixOf, isPrefixOf)
+import Foreign.Lua (FromLuaStack, peek, pop, rawgeti)
+import Text.Printf (printf)
 
 type Tags = [String]
-data Command = Command Tags String deriving (Ord, Show, Eq)
+
+data Command =
+  Command Tags
+          String
+  deriving (Ord, Show, Eq)
 
 instance FromLuaStack Command where
-    peek idx = do
-        tags <- rawgeti idx 1 *> peek (-1) <* pop 1
-        cmd <- rawgeti idx 2 *> peek (-1) <* pop 1
-        return $ makeCmd tags cmd
+  peek idx = do
+    tags <- rawgeti idx 1 *> peek (-1) <* pop 1
+    cmd <- rawgeti idx 2 *> peek (-1) <* pop 1
+    return $ makeCmd tags cmd
 
 makeCmd :: Tags -> String -> Command
 makeCmd = Command
@@ -29,32 +35,21 @@ getShellCmd (Command _ shellCmd) = shellCmd
 
 mapCmds :: [Command] -> (String -> String -> b) -> [b]
 mapCmds commands fun =
-    map (\(Command tags cmd) -> fun (unwords tags) cmd) commands
+  map (\(Command tags cmd) -> fun (unwords tags) cmd) commands
 
 filterCmdsAndTags :: [String] -> [Command] -> [Command]
 filterCmdsAndTags [] cmds = cmds
 filterCmdsAndTags (tag:tags) cmds =
-    case (isExcludeTag tag, isPartialMatchTag tag) of
-        (True, False) ->
-            filterCmdsAndTags
-                tags
-                (removeTag
-                     (filterCmds
-                          (not . isMatch (dropTagPrefix tag))
-                          cmds)
-                     tag)
-        (False, True) ->
-            filterCmdsAndTags
-                tags
-                (filterCmds
-                     (isPartialMatch (dropTagPrefix tag))
-                     cmds)
-        _ ->
-            filterCmdsAndTags
-                tags
-                (removeTag
-                     (filterCmds (isMatch tag) cmds)
-                     tag)
+  case (isExcludeTag tag, isPartialMatchTag tag) of
+    (True, False) ->
+      filterCmdsAndTags
+        tags
+        (removeTag (filterCmds (not . isMatch (dropTagPrefix tag)) cmds) tag)
+    (False, True) ->
+      filterCmdsAndTags
+        tags
+        (filterCmds (isPartialMatch (dropTagPrefix tag)) cmds)
+    _ -> filterCmdsAndTags tags (removeTag (filterCmds (isMatch tag) cmds) tag)
 
 isExcludeTag :: String -> Bool
 isExcludeTag = isPrefixOf "!"
@@ -63,8 +58,7 @@ isPartialMatchTag :: String -> Bool
 isPartialMatchTag = isPrefixOf "/"
 
 filterCmds :: ([String] -> Bool) -> [Command] -> [Command]
-filterCmds fun =
-    filter (\(Command tags _) -> fun tags)
+filterCmds fun = filter (\(Command tags _) -> fun tags)
 
 dropTagPrefix :: String -> String
 dropTagPrefix = drop 1
@@ -77,4 +71,7 @@ isPartialMatch partialTag = any (isInfixOf partialTag)
 
 removeTag :: [Command] -> String -> [Command]
 removeTag cmds tag =
-    map (\(Command tags cmd) -> Command (tags \\ [tag]) cmd) cmds
+  map (\(Command tags cmd) -> Command (tags \\ [tag]) cmd) cmds
+
+toStdout :: Command -> IO ()
+toStdout (Command tags cmd) = printf "%s|%s\n" (intercalate " " tags) cmd
