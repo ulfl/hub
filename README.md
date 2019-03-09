@@ -35,7 +35,3 @@ For an example config, see [hub.lua](./example/hub.lua)
 brew tap ulfl/tap
 brew install ulfl/tap/hub
 ```
-
-## Ubuntu/Debian
-
-Copy the prebuilt `binaries/hub-ubuntu` into your path and rename it to `hub`.
