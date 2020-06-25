@@ -4,7 +4,7 @@ module Hub.ConfigDhall
   ( dhallFileToCmds
   ) where
 
-import Data.String.Here
+import Data.String.Here (here)
 import Data.Text (Text)
 import Data.Text.IO (readFile)
 import Dhall (auto, detailed, input)

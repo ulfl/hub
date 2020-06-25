@@ -58,7 +58,7 @@ import Graphics.Vty
   , white
   , withStyle
   )
-import Hub.CmdLine
+import Hub.CmdLine (AppConfig(..), getAppConfig)
 import Hub.CommandType
   ( Command
   , filterCmdsAndTags

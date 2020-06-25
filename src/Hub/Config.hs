@@ -4,12 +4,12 @@ module Hub.Config
   ( readConfig
   ) where
 
-import Hub.CmdLine
-import Hub.CommandType
+import Hub.CmdLine (AppConfig(..))
+import Hub.CommandType (Command)
 import Hub.ConfigDhall (dhallFileToCmds)
-import System.CPUTime
-import System.Directory
-import System.FilePath
+import System.CPUTime (getCPUTime)
+import System.Directory (doesFileExist, getHomeDirectory)
+import System.FilePath (joinPath, takeExtension)
 import Text.Printf (printf)
 
 readConfig :: AppConfig -> IO [Command]
