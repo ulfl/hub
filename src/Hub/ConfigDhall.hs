@@ -19,8 +19,18 @@ dhallFileToCmds filePath = do
 prelude :: Text
 prelude =
   [here|
-let map =
-      https://raw.githubusercontent.com/dhall-lang/dhall-lang/0a7f596d03b3ea760a96a8e03935f4baa64274e1/Prelude/List/map sha256:310614c2949366621d7848e37c7845090d6c5b644234a1defe4d4048cf124fcd
+let map
+        : ∀(a : Type) → ∀(b : Type) → (a → b) → List a → List b
+        =   λ(a : Type)
+          → λ(b : Type)
+          → λ(f : a → b)
+          → λ(xs : List a)
+          → List/build
+            b
+            (   λ(list : Type)
+              → λ(cons : b → list → list)
+              → List/fold a xs list (λ(x : a) → cons (f x))
+            )
 
 let Command : Type = { tags : List Text, shellCommand : Text }
 
