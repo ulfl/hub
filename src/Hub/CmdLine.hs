@@ -55,4 +55,4 @@ getAppConfig = execParser opts
     opts =
       info
         (cmdOpts <**> helper)
-        (fullDesc <> header "Hub, Copyright (C) 2016-2019 Ulf Leopold")
+        (fullDesc <> header "Hub, Copyright (C) Ulf Leopold")

@@ -1,4 +1,4 @@
-;; Copyright (C) 2016-2019 Ulf Leopold
+;; Copyright (C) Ulf Leopold
 ;;
 ;; The below function works with Spacemacs / Ivy.
 
