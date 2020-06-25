@@ -1,4 +1,4 @@
--- Copyright (C) 2016-2019 Ulf Leopold
+-- Copyright (C) Ulf Leopold
 --
 module Hub.Config
   ( readConfig
@@ -9,10 +9,8 @@ import System.Directory
 import System.FilePath
 import Text.Printf (printf)
 import System.CPUTime
-
 import Hub.CommandType
-import Hub.ConfigMarkdown
-import Hub.ConfigLua
+import Hub.ConfigDhall (dhallFileToCmds )
 
 readConfig :: AppConfig -> IO [Command]
 readConfig appCfg = do
@@ -32,7 +30,7 @@ fileCandidates :: AppConfig -> IO [FilePath]
 fileCandidates appCfg = do
     home <- getHomeDirectory
     let defaultFiles =
-            map (\x -> joinPath [home, x]) [".hub.lua", ".hub.md"]
+            map (\x -> joinPath [home, x]) [".hub.dhall"]
     case config appCfg of
       Nothing -> return defaultFiles
       Just x -> return [x]
@@ -49,9 +47,8 @@ firstExisting (filePath : filePaths) = do
 loadCommands :: FilePath -> IO [Command]
 loadCommands filepath =
     case takeExtension filepath of
-        ".lua" -> luaFileToCmds filepath
-        ".md" -> markdownFileToCmds filepath
-        _ -> error "Not supported config file extension."
+        ".dhall" -> dhallFileToCmds filepath
+        ext -> error $ printf "Not supported config file extension: %s" (show ext)
 
 dt :: AppConfig -> String -> (() -> IO b) -> IO b
 dt AppConfig {profile = True} msg fun = do

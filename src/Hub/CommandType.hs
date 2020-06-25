@@ -1,7 +1,8 @@
--- Copyright (C) 2016-2019 Ulf Leopold
+-- Copyright (C) Ulf Leopold
 --
 module Hub.CommandType
   ( Command
+  , Commands(..)
   , makeCmd
   , getShellCmd
   , mapCmds
@@ -11,21 +12,26 @@ module Hub.CommandType
   ) where
 
 import Data.List ((\\), intercalate, isInfixOf, isPrefixOf)
-import Foreign.Lua (FromLuaStack, peek, pop, rawgeti)
+import Dhall (Interpret)
 import Text.Printf (printf)
+import GHC.Generics
 
 type Tags = [String]
 
 data Command =
-  Command Tags
-          String
-  deriving (Ord, Show, Eq)
+  Command
+    { tags :: Tags
+    , shellCommand :: String
+    }
+  deriving (Ord, Show, Eq, Generic)
 
-instance FromLuaStack Command where
-  peek idx = do
-    tags <- rawgeti idx 1 *> peek (-1) <* pop 1
-    cmd <- rawgeti idx 2 *> peek (-1) <* pop 1
-    return $ makeCmd tags cmd
+instance Interpret Command
+
+data Commands =
+  Commands [Command]
+  deriving (Show, Generic)
+
+instance Interpret Commands
 
 makeCmd :: Tags -> String -> Command
 makeCmd = Command

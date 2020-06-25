@@ -1,6 +1,9 @@
 all:
 	stack build
 
+clean:
+	stack build
+
 install:
 	stack install
 
