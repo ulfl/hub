@@ -13,8 +13,8 @@ module Hub.CommandType
 
 import Data.List ((\\), intercalate, isInfixOf, isPrefixOf)
 import Dhall (Interpret)
-import Text.Printf (printf)
 import GHC.Generics
+import Text.Printf (printf)
 
 type Tags = [String]
 

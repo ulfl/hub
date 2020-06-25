@@ -25,13 +25,15 @@ import Options.Applicative
   , switch
   )
 
-data AppConfig = AppConfig
-  { profile :: Bool
-  , config :: Maybe String
-  , dryrun :: Bool
-  , stdOut :: Bool
-  , tags :: [String]
-  } deriving (Show)
+data AppConfig =
+  AppConfig
+    { profile :: Bool
+    , config :: Maybe String
+    , dryrun :: Bool
+    , stdOut :: Bool
+    , tags :: [String]
+    }
+  deriving (Show)
 
 cmdOpts :: Parser AppConfig
 cmdOpts =
@@ -40,11 +42,11 @@ cmdOpts =
     (strOption
        (long "config" <> short 'c' <> help "Path to user configuration file")) <*>
   switch
-    (long "dry-run" <> short 'd' <>
-     help "Print the selected command, don't execute it") <*>
+    (long "dry-run" <>
+     short 'd' <> help "Print the selected command, don't execute it") <*>
   switch
-    (long "stdout" <> short 'o' <>
-     help "Print commands to stdout. No curses GUI.") <*>
+    (long "stdout" <>
+     short 'o' <> help "Print commands to stdout. No curses GUI.") <*>
   many (argument str (metavar "TAGS"))
 
 getAppConfig :: IO AppConfig

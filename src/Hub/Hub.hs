@@ -78,14 +78,14 @@ data FieldName
   deriving (Ord, Show, Eq)
 
 data State =
-  State (List FieldName ListRow) -- The list widget.
-        (Editor String FieldName) -- The editor widget.
-        [Command] -- List of available 'Commands'.
-        Action -- Action to take on exit.
+  State
+    (List FieldName ListRow) -- The list widget.
+    (Editor String FieldName) -- The editor widget.
+    [Command] -- List of available 'Commands'.
+    Action -- Action to take on exit.
 
 data ListRow =
-  ListRow String
-          String
+  ListRow String String
   deriving (Ord, Show, Eq)
 
 type Cmd = String
