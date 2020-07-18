@@ -35,4 +35,4 @@ let web =
       → λ(c : Text)
       → { tags = t, shellCommand = (env:OPENCMD as Text ? "open") ++ " " ++ c }
 
-in  [ Command, cmd, tags, cmds, web ]
+in  { cmd = cmd, tags = tags, cmds = cmds, web = web }
