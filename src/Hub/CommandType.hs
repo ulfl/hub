@@ -12,7 +12,7 @@ module Hub.CommandType
   ) where
 
 import Data.List ((\\), intercalate, isInfixOf, isPrefixOf)
-import Dhall (Interpret)
+import Dhall (FromDhall)
 import GHC.Generics (Generic)
 import Text.Printf (printf)
 
@@ -25,13 +25,13 @@ data Command =
     }
   deriving (Ord, Show, Eq, Generic)
 
-instance Interpret Command
+instance FromDhall Command
 
 data Commands =
   Commands [Command]
   deriving (Show, Generic)
 
-instance Interpret Commands
+instance FromDhall Commands
 
 makeCmd :: Tags -> String -> Command
 makeCmd = Command
