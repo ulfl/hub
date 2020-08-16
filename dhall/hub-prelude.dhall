@@ -33,6 +33,10 @@ let cmds =
 let web =
         λ(t : List Text)
       → λ(c : Text)
-      → { tags = t, shellCommand = (env:OPENCMD as Text ? "open") ++ " " ++ c }
+      → { tags =
+            t
+        , shellCommand =
+            (env:OPENCMD as Text ? "open") ++ " \"" ++ c ++ "\""
+        }
 
 in  { cmd = cmd, tags = tags, cmds = cmds, web = web }
