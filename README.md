@@ -12,26 +12,15 @@ command set by entering these tags, while seeing the filtered set of commands
 displayed to your terminal. Hub can also interface to Emacs Ivy mode and execute
 commands via Eshell.
 
-Commands are defined in configuration files in Lua format. The configuration
-format allows for a large number of similar commands to be specified while
-keeping the configuration file DRY.
+Commands are defined in configuration files expressed in the Dhall language. The
+configuration format allows for a large number of similar commands to be
+specified while keeping the configuration file DRY. [Dhall also provides safety
+guarantees](https://docs.dhall-lang.org/discussions/Safety-guarantees.html) so
+loading a shared configuration file can not have negative side effects.
 
-Lua allows for recursive inclusion of other Hub config files. You can for
+Dhall allows for recursive inclusion of other Hub config files. You can for
 example define your own personal commands in the root configuration file and
 then include shared configuration files for the development team. Hub expects
-the root configuration file to reside in `~/.hub.lua`.
+the root configuration file to reside in `~/.hub.dhall`.
 
-Nested config files are included as follows in Lua:
-
-    dofile "/absolute/path/to/file/file.lua"
-
-For an example config, see [hub.lua](./example/hub.lua)
-
-# Installation
-
-## OSX
-
-```bash
-brew tap ulfl/tap
-brew install ulfl/tap/hub
-```
+For an example config, see [hub.dhall](./example/hub.dhall)
