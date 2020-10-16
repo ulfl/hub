@@ -5,7 +5,7 @@ module Hub.CmdLine
   , AppConfig(..)
   ) where
 
-import Control.Applicative ((<**>), (<*>))
+import Control.Applicative ((<**>))
 import Options.Applicative
   ( Parser
   , argument
