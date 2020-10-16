@@ -10,7 +10,7 @@ that all commands are kept up to date.
 Hub allows you to assign tags to each command, and then incrementally search the
 command set by entering these tags, while seeing the filtered set of commands
 displayed to your terminal. Hub can also interface to Emacs Ivy mode and execute
-commands via Eshell.
+commands via Eshell (see [hub.el](./hub.el)).
 
 Commands are defined in configuration files expressed in the Dhall language. The
 configuration format allows for a large number of similar commands to be
