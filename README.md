@@ -24,3 +24,11 @@ then include shared configuration files for the development team. Hub expects
 the root configuration file to reside in `~/.hub.dhall`.
 
 For an example config, see [hub.dhall](./example/hub.dhall)
+
+# Installation
+
+Follow the instruction to install `stack`:
+
+https://docs.haskellstack.org/en/stable/install_and_upgrade/
+
+Then type `make` in this directory.
