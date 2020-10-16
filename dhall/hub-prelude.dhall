@@ -28,7 +28,7 @@ let cmds =
         λ(tags : List Text)
       → λ(vars : List Text)
       → λ(fmt : Text → Text)
-      → map Text Command (λ(var : Text) → cmd tags (fmt var)) vars
+      → map Text Command (λ(var : Text) → cmd (tags # [ var ]) (fmt var)) vars
 
 let web =
         λ(t : List Text)
