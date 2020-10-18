@@ -14,4 +14,8 @@
                    (eshell-return-to-prompt)
                    (insert (cadr res))
                    (eshell-send-input)))
-         (tags-and-command (ivy-read "hub: " commands-alist :action action :caller 'hub)))))
+         (tags-and-command (ivy-read "hub: " commands-alist :action action :caller 'hub :re-builder 'hub-re-builder)))))
+
+(defun hub-re-builder (str)
+  (ivy--regex-ignore-order
+   (s-replace "#" "\\b" (replace-regexp-in-string "#\\([a-zA-Z_]+\\)" "#\\1#" str))))
